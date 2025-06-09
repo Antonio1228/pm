@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1717920000000,
+    "projectCode": "PRJ-2025-001",
+    "name": "官網重新設計專案",
+    "owner": "張小明",
+    "startDate": "2025-06-01",
+    "endDate": "2025-08-31",
+    "status": "active",
+    "description": "重新設計公司官方網站，包含響應式設計、使用者體驗優化、SEO 改善等功能。預計使用 React + Next.js 技術架構。",
+    "createdAt": "2025-06-01T08:00:00.000Z",
+    "updatedAt": "2025-06-01T08:00:00.000Z"
+  },
+  {
+    "id": 1717923600000,
+    "projectCode": "PRJ-2025-002",
+    "name": "客戶管理系統開發",
+    "owner": "李小華",
+    "startDate": "2025-06-05",
+    "endDate": "2025-09-15",
+    "status": "active",
+    "description": "開發全新的客戶關係管理系統（CRM），包含客戶資料管理、銷售追蹤、報表生成等功能。使用 Node.js + Vue.js 開發。",
+    "createdAt": "2025-06-05T09:30:00.000Z",
+    "updatedAt": "2025-06-05T09:30:00.000Z"
+  },
+  {
+    "id": 1717927200000,
+    "projectCode": "PRJ-2025-003",
+    "name": "行動 APP 開發專案",
+    "owner": "王大同",
+    "startDate": "2025-06-10",
+    "endDate": "2025-10-20",
+    "status": "planning",
+    "description": "開發公司官方手機應用程式，支援 iOS 和 Android 平台。包含產品展示、線上購物、會員系統等功能。使用 React Native 開發。",
+    "createdAt": "2025-06-10T10:15:00.000Z",
+    "updatedAt": "2025-06-10T10:15:00.000Z"
+  },
+  {
+    "id": 1717930800000,
+    "projectCode": "PRJ-2025-004",
+    "name": "內部員工培訓系統",
+    "owner": "陳小芳",
+    "startDate": "2025-05-15",
+    "endDate": "2025-07-30",
+    "status": "active",
+    "description": "建立線上員工培訓平台，包含課程管理、進度追蹤、考試系統、證書頒發等功能。協助 HR 部門進行員工技能提升。",
+    "createdAt": "2025-05-15T14:20:00.000Z",
+    "updatedAt": "2025-05-15T14:20:00.000Z"
+  },
+  {
+    "id": 1717934400000,
+    "projectCode": "PRJ-2025-005",
+    "name": "資料庫優化專案",
+    "owner": "劉志明",
+    "startDate": "2025-04-01",
+    "endDate": "2025-06-30",
+    "status": "completed",
+    "description": "針對現有資料庫進行效能優化，包含索引重建、查詢優化、資料分割等作業。預期提升系統整體效能 30% 以上。",
+    "createdAt": "2025-04-01T11:00:00.000Z",
+    "updatedAt": "2025-06-30T17:00:00.000Z"
+  }
+]

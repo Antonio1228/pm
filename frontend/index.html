@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專案管理系統</title>
+    <!-- 確保 CSS 路徑正確 -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="description" content="高效的專案進度管理系統，支援專案建立、進度回報、統計分析等功能">
+    <meta name="keywords" content="專案管理,進度追蹤,團隊協作,工作管理">
+</head>
+
+<body>
+    <div class="container">
+        <!-- 頁面標題 -->
+        <div class="header">
+            <h1>📊 專案進度管理系統</h1>
+            <p>高效管理您的專案進度與團隊協作</p>
+        </div>
+
+        <!-- 導航按鈕 -->
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showSection('dashboard')" title="Ctrl+1">
+                📈 儀表板
+            </button>
+            <button class="nav-btn" onclick="showSection('projects')" title="Ctrl+2">
+                📂 專案管理
+            </button>
+            <button class="nav-btn" onclick="showSection('progress')" title="Ctrl+3">
+                📝 進度回報
+            </button>
+            <button class="nav-btn" onclick="showSection('reports')" title="Ctrl+4">
+                📊 進度查詢
+            </button>
+        </div>
+
+        <!-- 儀表板頁面 -->
+        <div id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h2>📈 專案儀表板</h2>
+                <div class="header-actions">
+                    <button id="dashboardRefresh" class="btn btn-sm btn-secondary" title="重新整理">
+                        🔄 重新整理
+                    </button>
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="autoRefreshToggle" checked>
+                        自動刷新
+                    </label>
+                </div>
+            </div>
+
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalProjects">0</div>
+                    <div class="stat-label">總專案數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeProjects">0</div>
+                    <div class="stat-label">進行中專案</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalReports">0</div>
+                    <div class="stat-label">總回報數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="needHelpCount">0</div>
+                    <div class="stat-label">需要協助</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalWorkHours">0</div>
+                    <div class="stat-label">總工作時數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="thisWeekReports">0</div>
+                    <div class="stat-label">本週回報</div>
+                </div>
+            </div>
+
+            <!-- 需要協助的項目提醒 -->
+            <div id="needHelpAlerts" style="display: none;"></div>
+
+            <!-- 專案摘要 -->
+            <div class="dashboard-section">
+                <h3>📂 專案摘要</h3>
+                <div id="projectSummary"></div>
+            </div>
+
+            <!-- 最新進度回報 -->
+            <div class="dashboard-section">
+                <h3>📝 最新進度回報</h3>
+                <div id="recentProgress"></div>
+            </div>
+
+            <!-- 圖表區域 -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>⏰ 工作時數統計</h3>
+                    <canvas id="workHoursChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>📊 專案狀態分布</h3>
+                    <div id="projectStatusChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 專案管理頁面 -->
+        <div id="projects" class="content-section">
+            <h2>📂 專案管理</h2>
+
+            <!-- 新增專案表單 -->
+            <div class="form-container">
+                <h3>🆕 新增專案</h3>
+                <form id="projectForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="projectCode" class="required">專案代碼</label>
+                            <input type="text" id="projectCode" name="projectCode" required placeholder="例：PRJ-2025-001"
+                                maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectName" class="required">專案名稱</label>
+                            <input type="text" id="projectName" name="projectName" required placeholder="輸入專案名稱"
+                                maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectOwner">負責人</label>
+                            <input type="text" id="projectOwner" name="projectOwner" placeholder="輸入負責人姓名"
+                                maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="startDate">起始日期</label>
+                            <input type="date" id="startDate" name="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">預計結束日期</label>
+                            <input type="date" id="endDate" name="endDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectStatus">專案狀態</label>
+                            <select id="projectStatus" name="projectStatus">
+                                <option value="planning">規劃中</option>
+                                <option value="active" selected>進行中</option>
+                                <option value="on-hold">暫停</option>
+                                <option value="completed">已完成</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">專案說明</label>
+                        <textarea id="description" name="description" placeholder="請描述專案目標、範圍等詳細資訊"
+                            maxlength="500"></textarea>
+                    </div>
+                    <button type="submit" class="btn">💾 儲存專案</button>
+                </form>
+            </div>
+
+            <!-- 專案列表 -->
+            <div class="list-container">
+                <div class="list-header">
+                    <h3>📋 專案列表</h3>
+                    <div class="header-stats">
+                        <span>總計：<strong id="totalProjectsCount">0</strong></span>
+                        <span>進行中：<strong id="activeProjectsCount">0</strong></span>
+                        <span>已完成：<strong id="completedProjectsCount">0</strong></span>
+                        <span>逾期：<strong id="overdueProjectsCount">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="search-filter-container">
+                    <input type="text" class="search-box" id="projectSearch" placeholder="🔍 搜尋專案代碼、名稱、負責人...">
+                </div>
+
+                <div class="table-container">
+                    <table id="projectTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="projectCode">專案代碼</th>
+                                <th data-sort="name">名稱</th>
+                                <th data-sort="owner">負責人</th>
+                                <th data-sort="startDate">起始日期</th>
+                                <th data-sort="endDate">結束日期</th>
+                                <th data-sort="status">狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 進度回報頁面 -->
+        <div id="progress" class="content-section">
+            <h2>📝 進度回報</h2>
+
+            <div class="form-container">
+                <form id="progressForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="reporter" class="required">回報人</label>
+                            <input type="text" id="reporter" name="reporter" required placeholder="輸入您的姓名"
+                                maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="reportDate" class="required">回報日期</label>
+                            <input type="date" id="reportDate" name="reportDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="progressProjectCode" class="required">專案代碼</label>
+                            <select id="progressProjectCode" name="progressProjectCode" required>
+                                <option value="">請選擇專案</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="workHours">工作時數</label>
+                            <input type="number" id="workHours" name="workHours" min="0" max="24" step="0.5"
+                                placeholder="今日工作時數">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="progressContent">✅ 今日完成項目</label>
+                        <textarea id="progressContent" name="progressContent" placeholder="請詳細描述今日完成的工作項目"
+                            maxlength="500"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="blocker">🚫 遇到的問題或障礙</label>
+                        <textarea id="blocker" name="blocker" placeholder="描述遇到的困難、卡關問題" maxlength="300"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="needHelp">🆘 是否需要協助</label>
+                        <select id="needHelp" name="needHelp">
+                            <option value="否">否</option>
+                            <option value="是">是 - 需要協助</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plan">📋 明日預定工作</label>
+                        <textarea id="plan" name="plan" placeholder="描述明日計劃執行的工作項目" maxlength="300"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">📤 提交回報</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 進度查詢頁面 -->
+        <div id="reports" class="content-section">
+            <div class="section-header">
+                <h2>📊 進度查詢</h2>
+                <div class="header-actions">
+                    <button id="exportReportsBtn" class="btn btn-sm btn-success">
+                        📥 匯出報表
+                    </button>
+                    <button id="refreshReportsBtn" class="btn btn-sm btn-secondary">
+                        🔄 重新整理
+                    </button>
+                </div>
+            </div>
+
+            <!-- 統計摘要 -->
+            <div id="reportsStats"></div>
+
+            <!-- 篩選區域 -->
+            <div class="search-filter-container">
+                <input type="text" class="search-box" id="reportSearch" placeholder="🔍 搜尋回報內容...">
+
+                <select id="filterProject" class="filter-select">
+                    <option value="">所有專案</option>
+                </select>
+
+                <select id="filterReporter" class="filter-select">
+                    <option value="">所有回報人</option>
+                </select>
+
+                <select id="filterNeedHelp" class="filter-select">
+                    <option value="">協助狀態</option>
+                    <option value="是">需要協助</option>
+                    <option value="否">不需要協助</option>
+                </select>
+
+                <input type="date" id="startDate" class="filter-select" title="開始日期">
+                <input type="date" id="endDate" class="filter-select" title="結束日期">
+            </div>
+
+            <!-- 篩選摘要 -->
+            <div id="filterSummary" style="display: none;"></div>
+
+            <!-- 排序選項 -->
+            <div class="sort-container">
+                <label>排序：</label>
+                <select id="sortBy" class="filter-select">
+                    <option value="date">日期</option>
+                    <option value="projectCode">專案代碼</option>
+                    <option value="reporter">回報人</option>
+                    <option value="workHours">工作時數</option>
+                </select>
+                <select id="sortOrder" class="filter-select">
+                    <option value="desc">新到舊</option>
+                    <option value="asc">舊到新</option>
+                </select>
+            </div>
+
+            <!-- 結果資訊 -->
+            <div id="resultsInfo" class="results-info"></div>
+
+            <!-- 進度報表列表 -->
+            <div id="progressReports"></div>
+
+            <!-- 分頁控制 -->
+            <div id="pagination"></div>
+
+            <!-- 載入指示器 -->
+            <div id="reportsLoading" class="loading-spinner" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 全域提示容器 -->
+    <div id="alertContainer"></div>
+
+    <!-- 載入腳本 - 確保路徑正確 -->
+    <script src="assets/js/app.js"></script>
+
+    <!-- 頁面底部資訊 -->
+    <footer style="text-align: center; margin-top: 50px; padding: 20px; color: rgba(255,255,255,0.7); font-size: 14px;">
+        <p>
+            📱 專案管理系統 v1.0 |
+            快捷鍵：Ctrl+1~4 切換頁面 |
+            <span id="connectionStatus">🟢 已連線</span>
+        </p>
+        <p style="font-size: 12px; margin-top: 5px;">
+            💡 提示：按 Ctrl+R 重新整理當前頁面資料 | ESC 關閉彈窗
+        </p>
+    </footer>
+
+    <!-- 開發模式除錯面板 -->
+    <div id="debugPanel"
+        style="display: none; position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 10000;">
+        <div>目前頁面：<span id="debugCurrentSection">-</span></div>
+        <div>網路狀態：<span id="debugNetworkStatus">-</span></div>
+        <div>已載入模組：<span id="debugLoadedModules">-</span></div>
+    </div>
+
+    <style>
+        /* 額外的頁面特定樣式 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .auto-refresh-toggle input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .dashboard-section {
+            margin-bottom: 40px;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .form-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .list-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .header-stats span {
+            white-space: nowrap;
+        }
+
+        .project-row {
+            transition: all 0.2s ease;
+        }
+
+        .project-row:hover {
+            background-color: #f8f9fa !important;
+            transform: translateX(2px);
+        }
+
+        .project-name {
+            font-weight: 500;
+        }
+
+        .overdue-indicator {
+            color: #dc3545;
+            margin-left: 5px;
+        }
+
+        .badge-active {
+            color: #28a745;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-buttons button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .sort-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .results-info {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-summary {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #1565c0;
+            margin-bottom: 20px;
+        }
+
+        .report-card {
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .report-title {
+            flex: 1;
+        }
+
+        .report-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+
+        .report-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .work-hours {
+            font-size: 12px;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: #495057;
+        }
+
+        .content-section h5 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .content-section.warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-dots {
+            padding: 0 8px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .progress-content p[style*="color: #dc3545"] {
+            color: #e74c3c !important;
+            background: #ffeaea;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #e74c3c;
+        }
+
+        /* 確保問題文字在所有主題下都清楚可見 */
+        .progress-card .problem-text {
+            color: #e74c3c !important;
+            background: #ffeaea;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #e74c3c;
+            margin: 8px 0;
+        }
+
+        /* 暗色主題下的問題文字 */
+        @media (prefers-color-scheme: dark) {
+
+            .progress-content p[style*="color: #dc3545"],
+            .progress-card .problem-text {
+                color: #ff6b6b !important;
+                background: #4a1e1e !important;
+                border-left-color: #ff6b6b;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-filter-container>* {
+                margin-bottom: 10px;
+            }
+
+            .header-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination-wrapper {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .report-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .report-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        // 更新連線狀態顯示
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            if (statusElement) {
+                statusElement.textContent = navigator.onLine ? '🟢 已連線' : '🔴 離線';
+            }
+        }
+
+        // 監聽網路狀態變化
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // 開發模式除錯面板
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            document.getElementById('debugPanel').style.display = 'block';
+
+            setInterval(() => {
+                document.getElementById('debugCurrentSection').textContent = window.currentSection || '-';
+                document.getElementById('debugNetworkStatus').textContent = navigator.onLine ? '線上' : '離線';
+                document.getElementById('debugLoadedModules').textContent = [
+                    window.dashboardModule ? 'dashboard' : '',
+                    window.projectsModule ? 'projects' : '',
+                    window.progressModule ? 'progress' : '',
+                    window.reportsModule ? 'reports' : ''
+                ].filter(Boolean).join(', ') || '-';
+            }, 1000);
+        }
+
+        // 初始更新連線狀態
+        updateConnectionStatus();
+
+        // 避免重複初始化
+        let appInitialized = false;
+
+        // CSS 載入檢查
+        window.addEventListener('load', function () {
+            if (appInitialized) return;
+            appInitialized = true;
+
+            // 檢查 CSS 是否正確載入
+            const testElement = document.createElement('div');
+            testElement.className = 'nav-btn';
+            testElement.style.display = 'none';
+            document.body.appendChild(testElement);
+
+            const computedStyle = window.getComputedStyle(testElement);
+            if (computedStyle.backgroundColor === 'rgba(0, 0, 0, 0)' || computedStyle.backgroundColor === 'transparent') {
+                console.warn('⚠️ CSS 檔案可能未正確載入');
+            }
+
+            document.body.removeChild(testElement);
+        });
+    </script>
+</body>
+
+</html>
+<meta name="description" content="高效的專案進度管理系統，支援專案建立、進度回報、統計分析等功能">
+<meta name="keywords" content="專案管理,進度追蹤,團隊協作,工作管理">
+</head>
+
+<body>
+    <div class="container">
+        <!-- 頁面標題 -->
+        <div class="header">
+            <h1>📊 專案進度管理系統</h1>
+            <p>高效管理您的專案進度與團隊協作</p>
+        </div>
+
+        <!-- 導航按鈕 -->
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showSection('dashboard')" title="Ctrl+1">
+                📈 儀表板
+            </button>
+            <button class="nav-btn" onclick="showSection('projects')" title="Ctrl+2">
+                📂 專案管理
+            </button>
+            <button class="nav-btn" onclick="showSection('progress')" title="Ctrl+3">
+                📝 進度回報
+            </button>
+            <button class="nav-btn" onclick="showSection('reports')" title="Ctrl+4">
+                📊 進度查詢
+            </button>
+        </div>
+
+        <!-- 儀表板頁面 -->
+        <div id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h2>📈 專案儀表板</h2>
+                <div class="header-actions">
+                    <button id="dashboardRefresh" class="btn btn-sm btn-secondary" title="重新整理">
+                        🔄 重新整理
+                    </button>
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="autoRefreshToggle" checked>
+                        自動刷新
+                    </label>
+                </div>
+            </div>
+
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalProjects">0</div>
+                    <div class="stat-label">總專案數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeProjects">0</div>
+                    <div class="stat-label">進行中專案</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalReports">0</div>
+                    <div class="stat-label">總回報數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="needHelpCount">0</div>
+                    <div class="stat-label">需要協助</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalWorkHours">0</div>
+                    <div class="stat-label">總工作時數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="thisWeekReports">0</div>
+                    <div class="stat-label">本週回報</div>
+                </div>
+            </div>
+
+            <!-- 需要協助的項目提醒 -->
+            <div id="needHelpAlerts" style="display: none;"></div>
+
+            <!-- 專案摘要 -->
+            <div class="dashboard-section">
+                <h3>📂 專案摘要</h3>
+                <div id="projectSummary"></div>
+            </div>
+
+            <!-- 最新進度回報 -->
+            <div class="dashboard-section">
+                <h3>📝 最新進度回報</h3>
+                <div id="recentProgress"></div>
+            </div>
+
+            <!-- 圖表區域 -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3>⏰ 工作時數統計</h3>
+                    <canvas id="workHoursChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>📊 專案狀態分布</h3>
+                    <div id="projectStatusChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 專案管理頁面 -->
+        <div id="projects" class="content-section">
+            <h2>📂 專案管理</h2>
+
+            <!-- 新增專案表單 -->
+            <div class="form-container">
+                <h3>🆕 新增專案</h3>
+                <form id="projectForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="projectCode" class="required">專案代碼</label>
+                            <input type="text" id="projectCode" name="projectCode" required placeholder="例：PRJ-2025-001"
+                                maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectName" class="required">專案名稱</label>
+                            <input type="text" id="projectName" name="projectName" required placeholder="輸入專案名稱"
+                                maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectOwner">負責人</label>
+                            <input type="text" id="projectOwner" name="projectOwner" placeholder="輸入負責人姓名"
+                                maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="startDate">起始日期</label>
+                            <input type="date" id="startDate" name="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">預計結束日期</label>
+                            <input type="date" id="endDate" name="endDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectStatus">專案狀態</label>
+                            <select id="projectStatus" name="projectStatus">
+                                <option value="planning">規劃中</option>
+                                <option value="active" selected>進行中</option>
+                                <option value="on-hold">暫停</option>
+                                <option value="completed">已完成</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">專案說明</label>
+                        <textarea id="description" name="description" placeholder="請描述專案目標、範圍等詳細資訊"
+                            maxlength="500"></textarea>
+                    </div>
+                    <button type="submit" class="btn">💾 儲存專案</button>
+                </form>
+            </div>
+
+            <!-- 專案列表 -->
+            <div class="list-container">
+                <div class="list-header">
+                    <h3>📋 專案列表</h3>
+                    <div class="header-stats">
+                        <span>總計：<strong id="totalProjectsCount">0</strong></span>
+                        <span>進行中：<strong id="activeProjectsCount">0</strong></span>
+                        <span>已完成：<strong id="completedProjectsCount">0</strong></span>
+                        <span>逾期：<strong id="overdueProjectsCount">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="search-filter-container">
+                    <input type="text" class="search-box" id="projectSearch" placeholder="🔍 搜尋專案代碼、名稱、負責人...">
+                </div>
+
+                <div class="table-container">
+                    <table id="projectTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="projectCode">專案代碼</th>
+                                <th data-sort="name">名稱</th>
+                                <th data-sort="owner">負責人</th>
+                                <th data-sort="startDate">起始日期</th>
+                                <th data-sort="endDate">結束日期</th>
+                                <th data-sort="status">狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 進度回報頁面 -->
+        <div id="progress" class="content-section">
+            <h2>📝 進度回報</h2>
+
+            <div class="form-container">
+                <form id="progressForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="reporter" class="required">回報人</label>
+                            <input type="text" id="reporter" name="reporter" required placeholder="輸入您的姓名"
+                                maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="reportDate" class="required">回報日期</label>
+                            <input type="date" id="reportDate" name="reportDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="progressProjectCode" class="required">專案代碼</label>
+                            <select id="progressProjectCode" name="progressProjectCode" required>
+                                <option value="">請選擇專案</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="workHours">工作時數</label>
+                            <input type="number" id="workHours" name="workHours" min="0" max="24" step="0.5"
+                                placeholder="今日工作時數">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="progressContent">✅ 今日完成項目</label>
+                        <textarea id="progressContent" name="progressContent" placeholder="請詳細描述今日完成的工作項目"
+                            maxlength="500"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="blocker">🚫 遇到的問題或障礙</label>
+                        <textarea id="blocker" name="blocker" placeholder="描述遇到的困難、卡關問題" maxlength="300"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="needHelp">🆘 是否需要協助</label>
+                        <select id="needHelp" name="needHelp">
+                            <option value="否">否</option>
+                            <option value="是">是 - 需要協助</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plan">📋 明日預定工作</label>
+                        <textarea id="plan" name="plan" placeholder="描述明日計劃執行的工作項目" maxlength="300"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">📤 提交回報</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 進度查詢頁面 -->
+        <div id="reports" class="content-section">
+            <div class="section-header">
+                <h2>📊 進度查詢</h2>
+                <div class="header-actions">
+                    <button id="exportReportsBtn" class="btn btn-sm btn-success">
+                        📥 匯出報表
+                    </button>
+                    <button id="refreshReportsBtn" class="btn btn-sm btn-secondary">
+                        🔄 重新整理
+                    </button>
+                </div>
+            </div>
+
+            <!-- 統計摘要 -->
+            <div id="reportsStats"></div>
+
+            <!-- 篩選區域 -->
+            <div class="search-filter-container">
+                <input type="text" class="search-box" id="reportSearch" placeholder="🔍 搜尋回報內容...">
+
+                <select id="filterProject" class="filter-select">
+                    <option value="">所有專案</option>
+                </select>
+
+                <select id="filterReporter" class="filter-select">
+                    <option value="">所有回報人</option>
+                </select>
+
+                <select id="filterNeedHelp" class="filter-select">
+                    <option value="">協助狀態</option>
+                    <option value="是">需要協助</option>
+                    <option value="否">不需要協助</option>
+                </select>
+
+                <input type="date" id="startDate" class="filter-select" title="開始日期">
+                <input type="date" id="endDate" class="filter-select" title="結束日期">
+            </div>
+
+            <!-- 篩選摘要 -->
+            <div id="filterSummary" style="display: none;"></div>
+
+            <!-- 排序選項 -->
+            <div class="sort-container">
+                <label>排序：</label>
+                <select id="sortBy" class="filter-select">
+                    <option value="date">日期</option>
+                    <option value="projectCode">專案代碼</option>
+                    <option value="reporter">回報人</option>
+                    <option value="workHours">工作時數</option>
+                </select>
+                <select id="sortOrder" class="filter-select">
+                    <option value="desc">新到舊</option>
+                    <option value="asc">舊到新</option>
+                </select>
+            </div>
+
+            <!-- 結果資訊 -->
+            <div id="resultsInfo" class="results-info"></div>
+
+            <!-- 進度報表列表 -->
+            <div id="progressReports"></div>
+
+            <!-- 分頁控制 -->
+            <div id="pagination"></div>
+
+            <!-- 載入指示器 -->
+            <div id="reportsLoading" class="loading-spinner" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 全域提示容器 -->
+    <div id="alertContainer"></div>
+
+    <!-- 載入腳本 -->
+    <script src="./assets/js/app.js"></script>
+
+    <!-- 頁面底部資訊 -->
+    <footer style="text-align: center; margin-top: 50px; padding: 20px; color: rgba(255,255,255,0.7);">
+        <p>
+            📱 專案管理系統 v1.0 |
+            快捷鍵：Ctrl+1~4 切換頁面 |
+            <span id="connectionStatus">🟢 已連線</span>
+        </p>
+        <p style="font-size: 12px; margin-top: 10px;">
+            💡 提示：按 Ctrl+R 重新整理當前頁面資料 | ESC 關閉彈窗
+        </p>
+    </footer>
+
+    <!-- 開發模式除錯面板 -->
+    <div id="debugPanel"
+        style="display: none; position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px; z-index: 10000;">
+        <div>目前頁面：<span id="debugCurrentSection">-</span></div>
+        <div>網路狀態：<span id="debugNetworkStatus">-</span></div>
+        <div>已載入模組：<span id="debugLoadedModules">-</span></div>
+    </div>
+
+    <style>
+        /* 額外的頁面特定樣式 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .auto-refresh-toggle input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .dashboard-section {
+            margin-bottom: 40px;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .form-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .list-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .header-stats span {
+            white-space: nowrap;
+        }
+
+        .project-row {
+            transition: all 0.2s ease;
+        }
+
+        .project-row:hover {
+            background-color: #f8f9fa !important;
+            transform: translateX(2px);
+        }
+
+        .project-name {
+            font-weight: 500;
+        }
+
+        .overdue-indicator {
+            color: #dc3545;
+            margin-left: 5px;
+        }
+
+        .badge-active {
+            color: #28a745;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-buttons button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .sort-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .results-info {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-summary {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #1565c0;
+            margin-bottom: 20px;
+        }
+
+        .report-card {
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .report-title {
+            flex: 1;
+        }
+
+        .report-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+
+        .report-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .work-hours {
+            font-size: 12px;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: #495057;
+        }
+
+        .content-section h5 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .content-section.warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-dots {
+            padding: 0 8px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .character-counter {
+            text-align: right;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .quick-fill-buttons {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .quick-fill-buttons h4 {
+            margin-bottom: 10px;
+            color: #0c5460;
+            font-size: 16px;
+        }
+
+        .template-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quick-date-filters {
+            margin-top: 15px;
+        }
+
+        .quick-filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .project-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .project-details h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .project-details p {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .suggestions-dropdown {
+            border: 1px solid #ddd;
+            background: white;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .submission-summary-modal .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .submission-summary-modal .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 0;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        .modal-header {
+            padding: 20px 25px 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #28a745;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px 25px;
+        }
+
+        .summary-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .summary-item.warning {
+            color: #856404;
+            background: #fff3cd;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .modal-footer {
+            padding: 15px 25px 20px;
+            text-align: right;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        .stat-warning .stat-number {
+            color: #856404 !important;
+        }
+
+        .project-summary-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.2s ease;
+        }
+
+        .project-summary-card:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stat-item.warning {
+            color: #856404;
+        }
+
+        .project-progress {
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .status-chart-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .status-chart-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-label {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .status-count {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-bar {
+            width: 100px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .status-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* 響應式設計增強 */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-filter-container>* {
+                margin-bottom: 10px;
+            }
+
+            .header-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .pagination-wrapper {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .report-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .report-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        // 更新連線狀態顯示
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            if (statusElement) {
+                statusElement.textContent = navigator.onLine ? '🟢 已連線' : '🔴 離線';
+            }
+        }
+
+        // 監聽網路狀態變化
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // 開發模式除錯面板
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            document.getElementById('debugPanel').style.display = 'block';
+
+            setInterval(() => {
+                document.getElementById('debugCurrentSection').textContent = window.currentSection || '-';
+                document.getElementById('debugNetworkStatus').textContent = navigator.onLine ? '線上' : '離線';
+                document.getElementById('debugLoadedModules').textContent = [
+                    window.dashboardModule ? 'dashboard' : '',
+                    window.projectsModule ? 'projects' : '',
+                    window.progressModule ? 'progress' : '',
+                    window.reportsModule ? 'reports' : ''
+                ].filter(Boolean).join(', ') || '-';
+            }, 1000);
+        }
+
+        // 初始更新連線狀態
+        updateConnectionStatus();
+    </script>
+</body>
+
+</html>
